@@ -1,5 +1,7 @@
 from fastapi import FastAPI, Request
+from pydantic import BaseModel
 from dotenv import load_dotenv
+from typing import Union, Optional
 import logging
 import openai
 import os
@@ -16,10 +18,12 @@ async def root(request: Request):
 
 
 @app.get("/api")
-async def api():
+async def api(list_text: str):
 
-    with open('test_text.txt','r') as file:
-        prompt_prepend = file.read()
+    prompt_prepend = list_text
+
+    #with open('test_text.txt','r') as file:
+        #prompt_prepend = file.read()
 
     #logger.error("prompt_prepend is " + prompt_prepend)
 
