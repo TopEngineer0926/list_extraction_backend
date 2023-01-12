@@ -1,10 +1,12 @@
 from fastapi import FastAPI, Request
 from dotenv import load_dotenv
+import logging
 import openai
 import os
 
 load_dotenv()
 app = FastAPI()
+logger = logging.getLogger()
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
@@ -16,20 +18,36 @@ async def root(request: Request):
 @app.get("/api")
 async def api():
 
-    prompt_prepend = "Hello, "
+    with open('test_text.txt','r') as file:
+        prompt_prepend = file.read()
 
-    prompt = "how are you?"
-    temperature = 0.7
+    #logger.error("prompt_prepend is " + prompt_prepend)
+
+    prompt = """
+####
+
+Here is an ordered list of the companies from the text:
+
+1."""
+    temperature = 0
 
     response = openai.Completion.create(
-        model="text-davinci-003",
+        model="code-davinci-002",
         prompt=prompt_prepend + prompt,
         temperature=temperature,
-        max_tokens=256,
+        max_tokens=400,
         top_p=1,
         frequency_penalty=0,
         presence_penalty=0,
-        stop="Hiring Manager:"
+        stop="####"
     )
 
-    return {"response_text": response['choices'][0]['text']}
+    response_list = response['choices'][0]['text'].strip().split("\n")
+    parsed_list = [response_list[0]]
+
+    for i, item in enumerate(response_list):
+        if i == 0:
+            continue
+        parsed_list.append(item.split(". ")[1])
+
+    return {"list": parsed_list}
