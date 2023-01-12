@@ -1,4 +1,4 @@
-name: mage-chat
+name: list-extraction-backend
 channels:
   - conda-forge
   - defaults
