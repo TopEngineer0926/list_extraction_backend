@@ -17,7 +17,7 @@ async def root(request: Request):
     return "works"
 
 
-@app.get("/api")
+@app.post("/api")
 async def api(list_text: str):
 
     prompt_prepend = list_text
