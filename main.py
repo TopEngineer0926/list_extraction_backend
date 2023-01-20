@@ -3,6 +3,14 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 from typing import Union, Optional
 from asgiref.sync import sync_to_async
+from openai.error import RateLimitError
+from tenacity import (
+    retry,
+    stop_after_attempt,
+    wait_random_exponential,
+)
+import re
+import backoff
 import openai_async
 import asyncio
 import logging
@@ -18,6 +26,9 @@ key = os.getenv("OPENAI_API_KEY")
 
 @app.get("/")
 def root(request: Request):
+    @backoff.on_exception(backoff.expo, RateLimitError)
+    def completions_with_backoff(**kwargs):
+        response = openai.Completion.create(**kwargs)
     return "works"
 
 
@@ -50,28 +61,34 @@ Here is an ordered list of the companies from the text:
     
     async def task_coro(item):
         # report a message
-        print(f'>task {item} executing \n')
+        # print(f'>task {item} executing \n')
+        print("".join(item) + prompt)
         response = await openai_async.complete(
             key,
-            timeout=10,
+            timeout=50,
             payload={
                 "model": "code-davinci-002",
                 "prompt": "".join(item) + prompt,
                 "temperature": temperature,
+                # "max_tokens:":400, 
+                "top_p":1,
+                "frequency_penalty":0,
+                "presence_penalty":0,
                 'stop':"####"
             },
         )
-        b_in_dict =  "error" in response.json()
         if("error" in response.json()):
             print(response.json()["error"])
         else:
-            response_list = response.json()["choices"][0]["text"].strip().split("\n")
+            response_list =  response.json()["choices"][0]["text"].translate({ord('\t'):None}).split('\n')
+            total_response_list.append(response_list[0])
             print(response_list)
             for i, item in enumerate(response_list):
+                print(item)
+                if i == 0:
+                    continue
                 if(len(item.split(". ")) > 1):
                     total_response_list.append(item.split(". ")[1])
-                else:
-                    total_response_list.append(item)
         print ('task end')
  
     # coroutine used for the entry point
