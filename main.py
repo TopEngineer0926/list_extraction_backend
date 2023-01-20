@@ -60,8 +60,7 @@ Here is an ordered list of the companies from the text:
     for i, item in enumerate(response_list):
         if i == 0:
             continue
-        temp = item.split(". ")
-        print(temp)
-        # parsed_list.append(item.split(". ")[1])
+        if(len(item.split(". ")) > 1):
+            parsed_list.append(item.split(". ")[1])
 
     return {"list": parsed_list}
