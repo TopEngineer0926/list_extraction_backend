@@ -1,11 +1,10 @@
 from pydantic import BaseModel
 from typing import Optional
-from datetime import datetime, time, timedelta
 
 class DataList(BaseModel):
     title: str
-    request: str
-    prompt_response: str
+    request: Optional[str] = None
+    prompt_response: Optional[str] = None    
     return_data: str
 
     class Config:

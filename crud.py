@@ -15,6 +15,10 @@ async def save_datalist_info(db: Session, info: schema.DataList):
     db.refresh(data_listmodel)
     return data_listmodel
 
+def update_datalist_info(db: Session, id:int, title:str, list_text: str):
+    
+    return None
+
 async def delete_datalist(db: Session):
     db.query(models.DataList).delete()
 

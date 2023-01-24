@@ -53,10 +53,10 @@ Here is an ordered list of the companies from the text:
 
     total_response_list = []
     prompt_response = {}
+    record_id = []
     
     async def task_coro(item):
         # report a message
-        # print(f'>task {item} executing \n')
         print("".join(item) + prompt)
         temp_prompt = "".join(item) + prompt
         response = await openai_async.complete(
@@ -101,20 +101,27 @@ Here is an ordered list of the companies from the text:
                 prompt_response= str(prompt_response),
                 return_data= str(total_response_list)
         )
-        await crud.save_datalist_info(db,info)
+        record = await crud.save_datalist_info(db,info)
         # report a message
+        record_id.append(record.id)
         print('main done') 
     asyncio.run(main())
-    return {"list": total_response_list}
+    return {"list": total_response_list, "id": record_id[0]}
 
-@app.post('/datalist/info')
-def save_datalist_info(info :DataList, db=Depends(db)):
-    print(type(info))
-    print(info)
-    object_in_db = crud.get_datalist_info(db, info.id)
-    if object_in_db:
-        raise HTTPException(400, detail= crud.error_message('This data info already exists'))
-    return crud.save_datalist_info(db,info)
+@app.post('/api/list_extraction')
+def save_datalist_info(item = Body(), db=Depends(db)):
+    id = item['id']
+    title = item['title']
+    return_data = item['list']
+    data = DataList(
+        id= id,
+        title = title,
+        return_data= str(return_data)
+    )
+    post_query = db.query(models.DataList).filter(models.DataList.id == id)
+    updated_post = post_query.first()
+    post_query.update(data.dict(exclude_unset=True), synchronize_session=False)
+    db.commit()
 
 @app.get('/datalist/info/{id}')
 def get_datalist_info(token: str, db=Depends(db)):
