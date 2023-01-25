@@ -8,7 +8,7 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-app.include_router(datalist.router, tags=['Posts'], prefix='/api')
+app.include_router(datalist.router, tags=['Lists'], prefix='/api')
 
 
 @app.get('/api/healthchecker')

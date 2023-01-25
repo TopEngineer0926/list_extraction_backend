@@ -2,17 +2,12 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
 
-class DataListResponse(BaseModel):
-    id: int
-    title: str
-    request: Optional[str] = None
-    created_date: datetime
-    prompt_response: Optional[str] = None  
-    return_data: str
+class AllDataListResponse(BaseModel):
+    lists: list= []
 
 class DataListResponse(BaseModel):
     id: int
-    result: list = []
+    result: list= []
 
 class ListPostResponse(BaseModel):
     status: str
@@ -26,31 +21,32 @@ class CreateDataListBaseSchema(BaseModel):
     request: str
 
     class Config:
-        orm_mode = True
+        orm_mode= True
 
 class CreateDataBaseListBaseSchema(CreateDataListBaseSchema):
     prompt_response: str
-    return_data: list = []
+    return_data: list= []
 
     class Config:
-        orm_mode = True
+        orm_mode= True
 
 class DataListBaseSchema(BaseModel):
     title: str
 
     class Config:
-        orm_mode = True
+        orm_mode= True
 
 class UpdateDataListSchema(DataListBaseSchema):
+    updated_date: Optional[datetime]= None
     return_data: list= []
 
     class Config:
-        orm_mode = True
+        orm_mode= True
 
 class CreateDataListSchema(DataListBaseSchema):
-    request: Optional[str] = None
-    prompt_response: Optional[str] = None    
+    request: Optional[str]= None
+    prompt_response: Optional[str]= None    
     return_data: str
 
     class Config:
-        orm_mode = True
+        orm_mode= True
