@@ -1,7 +1,7 @@
 from datetime import datetime
 from pytz import timezone
 import pytz
-from .database import Base
+from .db.database import Base
 from sqlalchemy import Column, String, Integer, DateTime
 
 class DataList(Base):

@@ -1,18 +1,27 @@
-from .. import schemas, models
-from sqlalchemy.orm import Session
 from fastapi import Depends, HTTPException, status, APIRouter, Body, Response
+from sqlalchemy.orm import Session
+from typing import Any
 from datetime import datetime
 from pytz import timezone
 import pytz
-from ..database import get_db
+
+from .. import crud, schemas, models
+from ..db.database import get_db
 from .. import task
 
 router = APIRouter()
 
 @router.get('/', response_model= schemas.AllDataListResponse)
-def get_datalists(db: Session= Depends(get_db)):
-    lists= db.query(models.DataList).group_by(models.DataList.id).all()
-    return {'lists': lists}
+def get_datalists(
+    db: Session = Depends(get_db),
+    skip: int = 0,
+    limit: int = 100
+) -> Any:
+    datalists = crud.datalist.get_multi(
+        db=db, skip=skip, limit=limit
+    )
+    return {'lists': datalists}
+
 
 @router.post('/list_text', response_model= schemas.DataListResponse)
 def create_datalist(item: schemas.CreateDataListBaseSchema= Body(), db: Session= Depends(get_db)):
@@ -22,7 +31,7 @@ def create_datalist(item: schemas.CreateDataListBaseSchema= Body(), db: Session=
         request= item.request,
         prompt_response= str(data['prompt_response']),
         return_data= data['return_data']
-    )
+    )   
     new_datalist= models.DataList(**info.dict())
     db.add(new_datalist)
     db.commit()
