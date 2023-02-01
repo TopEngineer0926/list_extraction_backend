@@ -10,28 +10,37 @@ def openai(list_text: str):
     oa.api_key= os.getenv("OPENAI_API_KEY")
     key = os.getenv("OPENAI_API_KEY")
 
-    temperature = 0
+    temperature = 0.7
     temp_data = list_text.strip('\n').translate({ord('\t'):' '}).translate({ord('\n'):' '})
     temp_list = re.split(r'\b', temp_data)
     data_list = [x for x in temp_list if x != '']
-    n= 900 # word count
+    n= 2400 # word count 
     # split prompt data
     split_data = [(data_list[i:i+n]) for i in range(0, len(data_list), n)]
+    print("*******************split data***************************")
+    print(len(split_data[len(split_data) -1]))
+    data_list_len = len(data_list)
+    print(len(data_list))
+    if(len(split_data[len(split_data) -1]) < n):
+        split_data[len(split_data) -1]= data_list[data_list_len-n-1 : data_list_len-1]
     prompt_response = {}
     prompt_prepend = ""
-    query = "company"
+    query = "companies"
 
     for i, item in enumerate(split_data):
         temp_prompt = "".join(item)
-        prompt = f"""Extract the company rankings from the text below.
-        Please include only the name of the company.
+        prompt = f"""
+        Extract the top company names from the text:
+        Just include only names of the company.
 
         Desired format:
         <comma_separated_list_of_company_names>
         Text: {prompt_prepend + temp_prompt} 
         ####
         """
+        print('***************************star of this is prompt**************************')
         print(prompt)
+        print("***************************end of prompt**********************************")
         response = oa.Completion.create(
             model="text-davinci-002",
             prompt= prompt,
