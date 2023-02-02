@@ -14,49 +14,43 @@ def openai(list_text: str):
     temp_data = list_text.strip('\n').translate({ord('\t'):' '}).translate({ord('\n'):' '})
     temp_list = re.split(r'\b', temp_data)
     data_list = [x for x in temp_list if x != '']
-    n= 2400 # word count 
+    n= 1200 # word count
     # split prompt data
     split_data = [(data_list[i:i+n]) for i in range(0, len(data_list), n)]
-    print("*******************split data***************************")
-    print(len(split_data[len(split_data) -1]))
     data_list_len = len(data_list)
-    print(len(data_list))
     if(len(split_data[len(split_data) -1]) < n):
         split_data[len(split_data) -1]= data_list[data_list_len-n-1 : data_list_len-1]
     prompt_response = {}
     prompt_prepend = ""
-    query = "companies"
+    query = "company"
+    # query = "software"
 
     for i, item in enumerate(split_data):
         temp_prompt = "".join(item)
-        prompt = f"""
-        Extract the top company names from the text:
-        Just include only names of the company.
-
+        prompt = f"""Extract the ranked {query} from the text:
+        Just include only the name of {query}.
         Desired format:
-        <comma_separated_list_of_company_names>
-        Text: {prompt_prepend + temp_prompt} 
+        <comma_separated_list_of_{query}_names>
+        Text: {prompt_prepend + temp_prompt}
         ####
         """
-        print('***************************star of this is prompt**************************')
-        print(prompt)
-        print("***************************end of prompt**********************************")
         response = oa.Completion.create(
-            model="text-davinci-002",
+            model="text-davinci-003",
             prompt= prompt,
             temperature=temperature,
-            max_tokens=400,
+            max_tokens=400, 
             top_p=1,
             frequency_penalty=0,
             presence_penalty=0,
             stop= "####"
         )
+        print(response["choices"][0]["text"].translate({ord('\t'):None}).translate({ord('\n'):None}).split(', '))
         response_list = response["choices"][0]["text"].translate({ord('\t'):None}).translate({ord('\n'):None}).split(', ')
         response_list = [x for x in response_list if x != '']
         print(response_list)
         temp_prepend = ""
         for i, item in enumerate(response_list):
-            temp_prepend += str(item) + ' ' 
+            temp_prepend += str(item) + ' '
         prompt_prepend =temp_prepend
         prompt_response[temp_prompt] = response_list
     cleanup_response_list = []
