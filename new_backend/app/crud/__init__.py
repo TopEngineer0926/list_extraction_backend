@@ -1,1 +1,0 @@
-from .crud_datalist import datalist
