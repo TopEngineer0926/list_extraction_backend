@@ -1,11 +1,10 @@
 from dotenv import load_dotenv
-import numpy as np
 import asyncio
 import openai as oa
 import openai_async
+import backoff
 import os
 import re
-from array import *
 
 def openai(list_text: str):
     print("#openai start")
@@ -17,7 +16,7 @@ def openai(list_text: str):
     temp_data = list_text.strip('\n').translate({ord('\t'):' '}).translate({ord('\n'):' '})
     temp_list = re.split(r'\b', temp_data)
     data_list = [x for x in temp_list if x != '']
-    n= 1200 # word count.env
+    n= 1200 # word count
     # split prompt data
     split_data = [(data_list[i:i+n]) for i in range(0, len(data_list), n)]
     data_list_len = len(data_list)
@@ -32,36 +31,44 @@ def openai(list_text: str):
     for i in range(0, len(split_data)):
         total_response_list.append('')
     
-    # query = "company"
-    query = "software"
+    query = "company"
+    # query = "software"
 
     async def task_coro(item, index):
         # report a message
         print("task start")
         company_list = []
         text = "".join(item)
-        prompt = f"""Please extract name of the {query} from the text:
+        prompt = f"""Please extract name the of {query} from the text:
 Just include only name of the {query}.
 Desired format:
 <comma_separated_list_of_{query}_names>
 Text:{text}
 ####"""
+
+        @backoff.on_exception(backoff.expo, oa.error.RateLimitError)
+        def completions_with_backoff(key, timeout, payload):
+                return openai_async.complete(key, timeout=timeout, payload=payload)
         # await delay_time()
-        response = await openai_async.complete(
-            key,
-            timeout=50,
-            payload={
-                "model": "text-davinci-003",
-                "prompt": prompt,
-                "temperature": temperature,
-                "max_tokens": 400,
-                "top_p":1,
-                "frequency_penalty":0,
-                "presence_penalty":0,
-                'stop':"####"
-            },
-        )
-        response_list =response.json()["choices"][0]["text"].translate({ord('\t'):None}).split(', ')
+        try:
+            response = await completions_with_backoff(
+                key,
+                timeout=50,
+                payload={
+                    "model": "text-davinci-003",
+                    "prompt": prompt,
+                    "temperature": temperature,
+                    "max_tokens": 400,
+                    "top_p":1,
+                    "frequency_penalty":0,
+                    "presence_penalty":0,
+                    'stop':"####"
+                },
+            )
+            response_list =response.json()["choices"][0]["text"].translate({ord('\t'):None}).split(', ')
+        except Exception as e:
+            response_list =[]
+            print(e)
         for i, item in enumerate(response_list):
             company_list.append(item)
         total_response_list[index] = company_list
@@ -92,21 +99,24 @@ Desired format:
 
 ####
 """
-        response = await openai_async.complete(
-            key,
-            timeout=50,
-            payload={
-                "model": "text-davinci-003",
-                "prompt": prompt,
-                "temperature": temperature,
-                "max_tokens": 400,
-                "top_p":1,
-                "frequency_penalty":0,
-                "presence_penalty":0,
-                'stop':"####"
-            },
-        )
-        ranked_cleanup_result = response.json()["choices"][0]["text"].translate({ord('\t'):None}).translate({ord('\n'):None}).split(', ')
+        try:
+            response = await openai_async.complete(
+                key,
+                timeout=50,
+                payload={
+                    "model": "text-davinci-003",
+                    "prompt": prompt,
+                    "temperature": temperature,
+                    "max_tokens": 400,
+                    "top_p":1,
+                    "frequency_penalty":0,
+                    "presence_penalty":0,
+                    'stop':"####"
+                },
+            )
+            ranked_cleanup_result = response.json()["choices"][0]["text"].translate({ord('\t'):None}).translate({ord('\n'):None}).split(', ')
+        except Exception as e:
+            print(e)
         for i, item in enumerate(ranked_cleanup_result):
             ranked_response.append(item)
         print('main done')
