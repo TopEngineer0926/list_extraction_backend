@@ -26,6 +26,8 @@ def openai(list_text: str):
     ranked_response = []
     total_response_list = []
     total_response = []
+    cleanup_response_list = []
+    separator = '###'
 
 
     for i in range(0, len(split_data)):
@@ -38,11 +40,11 @@ def openai(list_text: str):
         # report a message
         print("task start")
         company_list = []
+        empty = ''
         text = "".join(item)
         prompt = f"""Please extract name the of {query} from the text:
 Just include only name of the {query}.
-Desired format:
-<comma_separated_list_of_{query}_names>
+Please separate items by {separator}
 Text:{text}
 ####"""
 
@@ -65,14 +67,17 @@ Text:{text}
                     'stop':"####"
                 },
             )
-            response_list =response.json()["choices"][0]["text"].translate({ord('\t'):None}).split(', ')
+            if('No company' in response.json()["choices"][0]["text"]):
+                response_list =[]
+            else:
+                response_list =response.json()["choices"][0]["text"].translate({ord('\t'):None}).split(separator)
         except Exception as e:
             response_list =[]
             print(e)
         for i, item in enumerate(response_list):
             company_list.append(item)
         total_response_list[index] = company_list
-        print ('task end')
+
     # coroutine used for the entry point
     #main start
     async def main():
@@ -82,43 +87,40 @@ Text:{text}
         coros = [task_coro(item, i) for i, item in enumerate(split_data)]
         # run the tasks
         await asyncio.gather(*coros)
-        print(total_response_list)
         for i, items in enumerate(total_response_list):
             for i, item in enumerate(items):
                 total_response.append(item)
-        cleanup_response_list = []
         [cleanup_response_list.append(item.strip()) for item in total_response if item not in cleanup_response_list]
         ranked_result = ""
         for i, item in enumerate(cleanup_response_list):
             ranked_result += str(item) + ', '
         prompt = f"""
-Please rank the following {query} from best to worst:
-Desired format:
-<comma_separated_list_of_{query}_names>
-{ranked_result}
-
+Please rank the following companies from best to worst without ranking numbers:
+Company: {ranked_result}
+ 
 ####
 """
-        try:
-            response = await openai_async.complete(
-                key,
-                timeout=50,
-                payload={
-                    "model": "text-davinci-003",
-                    "prompt": prompt,
-                    "temperature": temperature,
-                    "max_tokens": 400,
-                    "top_p":1,
-                    "frequency_penalty":0,
-                    "presence_penalty":0,
-                    'stop':"####"
-                },
-            )
-            ranked_cleanup_result = response.json()["choices"][0]["text"].translate({ord('\t'):None}).translate({ord('\n'):None}).split(', ')
-        except Exception as e:
-            print(e)
+        max_token_length = len(cleanup_response_list) * 4
+        print(max_token_length)
+        print(prompt)
+        response = await openai_async.complete(
+            key,
+            timeout=50,
+            payload={
+                "model": "text-davinci-003",
+                "prompt": prompt,
+                "temperature": temperature,
+                "max_tokens": 400,
+                "top_p": 1,
+                "frequency_penalty": 0,
+                "presence_penalty": 0,
+                'stop':"####"
+            },
+        )
+        ranked_cleanup_result = response.json()["choices"][0]["text"].translate({ord('\t'):None}).translate({ord('\n'):None}).split(', ')
         for i, item in enumerate(ranked_cleanup_result):
             ranked_response.append(item)
+        print(ranked_response)
         print('main done')
     #main end
     asyncio.run(main())
