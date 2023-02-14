@@ -3,6 +3,7 @@ import asyncio
 import openai as oa
 import openai_async
 import backoff
+from openai.error import RateLimitError
 import os
 import re
 
@@ -40,7 +41,6 @@ def openai(list_text: str):
         # report a message
         print("task start")
         company_list = []
-        empty = ''
         text = "".join(item)
         prompt = f"""Please extract name the of {query} from the text:
 Just include only name of the {query}.
@@ -48,10 +48,9 @@ Please separate items by {separator}
 Text:{text}
 ####"""
 
-        @backoff.on_exception(backoff.expo, oa.error.RateLimitError)
+        @backoff.on_exception(backoff.expo, RateLimitError)
         def completions_with_backoff(key, timeout, payload):
-                return openai_async.complete(key, timeout=timeout, payload=payload)
-        # await delay_time()
+            return openai_async.complete(key, timeout=timeout, payload=payload)
         try:
             response = await completions_with_backoff(
                 key,
@@ -67,16 +66,19 @@ Text:{text}
                     'stop':"####"
                 },
             )
-            if('No company' in response.json()["choices"][0]["text"]):
+            print(response)
+            if(f"No {query}" in response.json()["choices"][0]["text"]):
                 response_list =[]
             else:
                 response_list =response.json()["choices"][0]["text"].translate({ord('\t'):None}).split(separator)
         except Exception as e:
             response_list =[]
             print(e)
+            print('exception')
         for i, item in enumerate(response_list):
             company_list.append(item)
         total_response_list[index] = company_list
+        print('task end')
 
     # coroutine used for the entry point
     #main start
@@ -95,7 +97,7 @@ Text:{text}
         for i, item in enumerate(cleanup_response_list):
             ranked_result += str(item) + ', '
         prompt = f"""
-Please rank the following companies from best to worst without ranking numbers:
+Please rank the following {query} from best to worst without ranking numbers:
 Company: {ranked_result}
  
 ####
@@ -117,6 +119,7 @@ Company: {ranked_result}
                 'stop':"####"
             },
         )
+        print(response)
         ranked_cleanup_result = response.json()["choices"][0]["text"].translate({ord('\t'):None}).translate({ord('\n'):None}).split(', ')
         for i, item in enumerate(ranked_cleanup_result):
             ranked_response.append(item)
