@@ -25,7 +25,6 @@ def openai(list_text: str, extract_field: str):
     if(len(split_data[len(split_data) -1]) < n):
         split_data[len(split_data) -1]= data_list[data_list_len-n-1 : data_list_len-1]
     prompt_response = {}
-    ranked_response = []
     total_response_list = []
     total_response = []
     cleanup_response_list = []
@@ -80,7 +79,6 @@ Text: {text}
         except Exception as e:
             response_list =[]
             print(e)
-            print('exception')
         for i, item in enumerate(response_list):
             company_list.append(item)
         total_response_list[index] = company_list
