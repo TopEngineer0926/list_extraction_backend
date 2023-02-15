@@ -22,6 +22,7 @@ async def api(list_text: str):
 
     prompt_prepend = list_text
 
+
     #with open('test_text.txt','r') as file:
         #prompt_prepend = file.read()
 
@@ -34,6 +35,13 @@ Here is an ordered list of the companies from the text:
 
 1."""
     temperature = 0
+
+    temp_data = (prompt_prepend + prompt).strip()
+    temp_list = temp_data.split('\n')
+    n= 1200 # word count
+    # split prompt data
+    split_data = [(temp_list[i:i+n]) for i in range(0, len(temp_list), n)]
+    print(split_data)
 
     response = openai.Completion.create(
         model="code-davinci-002",
@@ -52,6 +60,7 @@ Here is an ordered list of the companies from the text:
     for i, item in enumerate(response_list):
         if i == 0:
             continue
-        parsed_list.append(item.split(". ")[1])
+        if(len(item.split(". ")) > 1):
+            parsed_list.append(item.split(". ")[1])
 
     return {"list": parsed_list}
