@@ -19,11 +19,14 @@ class UpdateDataListResponse(ListPostResponse):
 class CreateDataListBaseSchema(BaseModel):
     title: str
     request: str
+    extract_field: str
 
     class Config:
         orm_mode= True
 
-class CreateDataBaseListBaseSchema(CreateDataListBaseSchema):
+class CreateDataBaseListBaseSchema(BaseModel):
+    title: str
+    request: str
     prompt_response: str
     return_data: list= []
 

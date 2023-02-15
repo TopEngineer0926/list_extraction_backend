@@ -25,10 +25,11 @@ def get_datalists(
 
 @router.post('/list_text')
 def create_datalist(item: schemas.CreateDataListBaseSchema= Body(), db: Session= Depends(get_db)):
-    data= task.openai(item.request)
+    data= task.openai(item.request, item.extract_field)
     info= schemas.CreateDataBaseListBaseSchema(
         title= item.title,
         request= item.request,
+        extract_field = item.extract_field,
         prompt_response= str(data['prompt_response']),
         return_data= data['return_data']
     )   

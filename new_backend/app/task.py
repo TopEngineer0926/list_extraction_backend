@@ -4,10 +4,11 @@ import openai as oa
 import openai_async
 import backoff
 from openai.error import RateLimitError
+import time
 import os
 import re
 
-def openai(list_text: str):
+def openai(list_text: str, extract_field: str):
     print("#openai start")
     load_dotenv()
     oa.api_key= os.getenv("OPENAI_API_KEY")
@@ -28,24 +29,25 @@ def openai(list_text: str):
     total_response_list = []
     total_response = []
     cleanup_response_list = []
-    separator = '###'
+    separator = '$ep@r@t0r'
+    query = extract_field
 
     @backoff.on_exception(backoff.expo, RateLimitError)
     def completions_with_backoff(key, timeout, payload):
         return openai_async.complete(key, timeout=timeout, payload=payload)
+    
+    def delay_time():
+        time.sleep(3)
 
     for i in range(0, len(split_data)):
         total_response_list.append('')
-    
-    query = "company"
-    # query = "software"
 
     async def task_coro(item, index):
         # report a message
-        print("task start")
+        print(f"task{index} start")
         company_list = []
         text = "".join(item)
-        prompt = f"""Please extract name the of {query} from the text:
+        prompt = f"""Please extract the name of {query} from text:
 Just include only name of the {query}.
 Please separate items by {separator}
 Text:{text}
@@ -70,6 +72,10 @@ Text:{text}
                 response_list =[]
             else:
                 response_list =response.json()["choices"][0]["text"].translate({ord('\t'):None}).split(separator)
+                prompt_response[prompt] = response_list
+            print(f"********{index}********\n{prompt}\n")
+            print(response_list)
+            print(total_response_list)
         except Exception as e:
             response_list =[]
             print(e)

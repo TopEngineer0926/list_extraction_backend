@@ -26,4 +26,4 @@ app.include_router(datalist.router, tags=['Lists'], prefix='/api')
 
 @app.get('/api/healthchecker')
 def root():
-    return {'message': 'Hello World'}
+    return {'message': 'Hello Moonhub'}
