@@ -47,11 +47,12 @@ def openai(list_text: str, extract_field: str):
         print(f"task{index} start")
         company_list = []
         text = "".join(item)
-        prompt = f"""Please extract the name of {query} from text:
-Just include only name of the {query}.
+        prompt = f"""Please extract all {query} from the text:
+Please contain only name of the {query}.
 Please separate items by {separator}
-Text:{text}
+Text: {text}
 ####"""
+        print(prompt)
         try:
             response = await completions_with_backoff(
                 key,
@@ -96,7 +97,7 @@ Text:{text}
         await asyncio.gather(*coros)
         for i, items in enumerate(total_response_list):
             for i, item in enumerate(items):
-                total_response.append(item)
+                total_response.append(item.strip())
         [cleanup_response_list.append(item.strip()) for item in total_response if item not in cleanup_response_list]
         print('main done')
     #main end
