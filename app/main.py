@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from .db.database import engine
 from app.routers import datalist
 from . import models
@@ -10,6 +11,7 @@ app = FastAPI()
 
 origins = ["*"]
 
+app.add_middleware(HTTPSRedirectMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
