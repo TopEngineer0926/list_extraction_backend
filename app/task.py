@@ -4,7 +4,6 @@ import openai as oa
 import openai_async
 import backoff
 from openai.error import RateLimitError
-import time
 import os
 import re
 
@@ -34,9 +33,6 @@ def openai(list_text: str, extract_field: str):
     @backoff.on_exception(backoff.expo, RateLimitError)
     def completions_with_backoff(key, timeout, payload):
         return openai_async.complete(key, timeout=timeout, payload=payload)
-    
-    def delay_time():
-        time.sleep(3)
 
     for i in range(0, len(split_data)):
         total_response_list.append('')
@@ -47,11 +43,10 @@ def openai(list_text: str, extract_field: str):
         company_list = []
         text = "".join(item)
         prompt = f"""Please extract all {query} from the text:
-Please contain only name of the {query}.
+Please contain only {query}.
 Please separate items by {separator}
 Text: {text}
 ####"""
-        print(prompt)
         try:
             response = await completions_with_backoff(
                 key,
@@ -67,22 +62,22 @@ Text: {text}
                     'stop':"####"
                 },
             )
-            print(response)
-            if(f"No {query}" in response.json()["choices"][0]["text"]):
+            if(f"No " in response.json()["choices"][0]["text"]):
                 response_list =[]
             else:
                 response_list =response.json()["choices"][0]["text"].translate({ord('\t'):None}).split(separator)
                 prompt_response[prompt] = response_list
-            print(f"********{index}********\n{prompt}\n")
+            print(f"**********************\n{prompt}\n")
             print(response_list)
             print(total_response_list)
+            print("***********************")
         except Exception as e:
-            response_list =[]
             print(e)
+            response_list =[]
         for i, item in enumerate(response_list):
             company_list.append(item)
         total_response_list[index] = company_list
-        print('task end')
+        print(f"task{index} end")
 
     # coroutine used for the entry point
     #main start
