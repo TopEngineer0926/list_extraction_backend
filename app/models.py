@@ -11,5 +11,7 @@ class DataList(Base):
     created_date = Column(DateTime, default=(datetime.now(tz=pytz.utc)).astimezone(timezone('US/Pacific')))
     updated_date = Column(DateTime, default=(datetime.now(tz=pytz.utc)).astimezone(timezone('US/Pacific')))
     request= Column(String)
+    category= Column(String)
+    url= Column(String)
     prompt_response= Column(String)
     return_data= Column(String)
