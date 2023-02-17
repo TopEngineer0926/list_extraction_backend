@@ -7,7 +7,7 @@ from openai.error import RateLimitError
 import os
 import re
 
-def openai(list_text: str, extract_field: str):
+def openai(list_text: str, category: str):
     print("#openai start")
     load_dotenv()
     oa.api_key= os.getenv("OPENAI_API_KEY")
@@ -28,7 +28,7 @@ def openai(list_text: str, extract_field: str):
     total_response = []
     cleanup_response_list = []
     separator = '$ep@r@t0r'
-    query = extract_field
+    query = category
 
     @backoff.on_exception(backoff.expo, RateLimitError)
     def completions_with_backoff(key, timeout, payload):
@@ -80,7 +80,7 @@ Text: {text}
         print(f"task{index} end")
 
     # coroutine used for the entry point
-    #main start
+    # main start
     async def main():
         # report a message
         print('main starting')
@@ -93,6 +93,6 @@ Text: {text}
                 total_response.append(item.strip())
         [cleanup_response_list.append(item.strip()) for item in total_response if item not in cleanup_response_list]
         print('main done')
-    #main end
+    # main end
     asyncio.run(main())
     return {"return_data": cleanup_response_list, "prompt_response": prompt_response}
