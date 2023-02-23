@@ -19,6 +19,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.add_middleware(HTTPSRedirectMiddleware)
+
 app.include_router(datalist.router, tags=['Lists'], prefix='/api')
 
 @app.get('/api/healthchecker')
