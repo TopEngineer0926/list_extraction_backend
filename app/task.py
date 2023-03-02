@@ -27,7 +27,8 @@ def openai(list_text: str, category: str):
     total_response_list = []
     total_response = []
     cleanup_response_list = []
-    separator = '$ep@r@t0r'
+    # To separate company name which has comma.
+    separator = '$$$'
     query = category
 
     @backoff.on_exception(backoff.expo, RateLimitError)
@@ -42,9 +43,9 @@ def openai(list_text: str, category: str):
         print(f"task{index} start")
         company_list = []
         text = "".join(item)
-        prompt = f"""Please extract all {query} from the text:
-Please contain only {query}.
-Please separate items by {separator}
+        prompt = f"""
+Please extract all {query} from the text:
+Separate each result by {separator}
 Text: {text}
 ####"""
         try:
