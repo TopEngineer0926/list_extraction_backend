@@ -1,15 +1,17 @@
-# syntax = docker/dockerfile:1.4
+#
+FROM python:3.11
 
-FROM tiangolo/uvicorn-gunicorn-fastapi:python3.9-slim
+#
+WORKDIR /code
 
-WORKDIR /app
+#
+COPY ./requirements.txt /code/requirements.txt
 
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+#
+RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
-COPY requirements.txt ./
-RUN pip install -r requirements.txt
+#
+COPY . /code/
 
-COPY ./app ./app
-
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
+#
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
