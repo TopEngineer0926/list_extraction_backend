@@ -1,6 +1,6 @@
 # syntax = docker/dockerfile:1.4
 
-FROM tiangolo/uvicorn-gunicorn-fastapi:python3.9-slim AS builder
+FROM tiangolo/uvicorn-gunicorn-fastapi:python3.9-slim
 
 WORKDIR /app
 
@@ -13,16 +13,4 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 COPY ./app ./app
 
-FROM builder as dev-envs
-
-RUN apt-get update
-RUN apt-get install -y --no-install-recommends git
-
-RUN useradd -s /bin/bash -m vscode
-RUN groupadd docker
-RUN usermod -aG docker vscode
-
-# install Docker tools (cli, buildx, compose)
-COPY --from=gloursdocker/docker / /
-
-EXPOSE 80
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
