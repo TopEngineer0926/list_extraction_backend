@@ -23,6 +23,6 @@ app.add_middleware(
 
 app.include_router(datalist.router, tags=['Lists'], prefix='/api')
 
-@app.get('/api/healthchecker')
+@app.get('/healthchecker')
 def root():
     return {'message': 'Hello Moonhub'}
