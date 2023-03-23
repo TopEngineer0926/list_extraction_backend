@@ -46,6 +46,8 @@ class UpdateDataListSchema(DataListBaseSchema):
     updated_date: Optional[datetime]= None
     return_data: list= []
     updated_return_data:list= []
+    filter: str
+    title: str
     dev_mode: bool
 
     class Config:

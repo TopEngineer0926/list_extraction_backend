@@ -10,6 +10,7 @@ class DataList(Base):
     user_id = Column(Integer, default=(0))
     email = Column(String, default=("null"))
     title = Column(String)
+    filter = Column(String)
     created_date = Column(DateTime, default=(datetime.now(tz=pytz.utc)).astimezone(timezone('US/Pacific')))
     updated_date = Column(DateTime, default=(datetime.now(tz=pytz.utc)).astimezone(timezone('US/Pacific')))
     dev_mode= Column(Boolean, default=(False))
