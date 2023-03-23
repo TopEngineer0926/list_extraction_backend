@@ -47,7 +47,11 @@ def update_datalist(id: str, item: schemas.UpdateDataListSchema= Body(), db: Ses
     updated_datalist= datalist_query.first()
     now= (datetime.now(tz=pytz.utc)).astimezone(timezone('US/Pacific'))
     temp_return_data= item.return_data
-    item.return_data= str(item.return_data)
+    if (item.dev_mode != True):
+        item.return_data= str(item.return_data)
+    else:
+        item.updated_return_data= str(item.return_data)
+        item.return_data= updated_datalist.return_data
     item.updated_date = now
     if not updated_datalist:
         raise HTTPException(status_code= status.HTTP_200_OK,

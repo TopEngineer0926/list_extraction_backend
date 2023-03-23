@@ -45,6 +45,8 @@ class DataListBaseSchema(BaseModel):
 class UpdateDataListSchema(DataListBaseSchema):
     updated_date: Optional[datetime]= None
     return_data: list= []
+    updated_return_data:list= []
+    dev_mode: bool
 
     class Config:
         orm_mode= True
